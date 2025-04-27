@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Pending Detections Map</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+    <style>
+        /* Custom style for the no-data message */
+        .leaflet-control-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 1000;
+            animation: fadeIn 1s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="header-content">
+            <nav>
+                <a href="{{ url_for('dashboard') }}">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </nav>
+            <h1>Pending Detections Map</h1>
+        </div>
+    </header>
+
+    <main>
+        <div id="map" style="height: 600px;"></div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Road Monitoring System</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const detections = {{ detections | tojson | safe }};
+            const map = L.map('map').setView([20, 0], 2); // Neutral world center
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            const markers = L.markerClusterGroup();
+
+            if (!detections || detections.length === 0) {
+                const noDataMessage = L.control({ position: 'center' });
+
+                noDataMessage.onAdd = function (map) {
+                    const div = L.DomUtil.create('div', 'leaflet-control-center');
+                    div.innerHTML = `
+                        <div style="text-align:center; background:rgba(255,255,255,0.8); padding:30px; border-radius:8px;">
+                            <h2>No Pending Detections</h2>
+                            <p>Everything looks clear! ✅</p>
+                        </div>
+                    `;
+                    return div;
+                };
+
+                noDataMessage.addTo(map);
+                return; // No markers to add
+            }
+
+            detections.forEach(d => {
+                const marker = L.marker([d.coordinates.lat, d.coordinates.lng])
+                    .bindPopup(`<b>${d["class"]}</b><br>${d.datetime}<br>Status: ❌ Pending`);
+                markers.addLayer(marker);
+            });
+
+            map.addLayer(markers);
+
+            if (markers.getLayers().length > 0) {
+                map.fitBounds(markers.getBounds());
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>View Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+</head>
+
+<body>
+    <header>
+        <div class="header-content">
+            <nav>
+                <a href="{{ url_for('dashboard') }}">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </nav>
+            <h1>Detection Details</h1>
+        </div>
+    </header>
+    <main class="view-container">
+        <div class="image-container">
+            <img src="{{ url_for('static', filename=detection.image.split('static/')[1]) }}" class="view-image" alt="Detection Image">
+        </div>
+        <div class="detail-container">
+            <h2>{{ detection.class }}</h2>
+            <p><i class="far fa-clock"></i> {{ detection.datetime }}</p>
+            <p><i class="fas fa-map-marker-alt"></i> ({{ detection.coordinates.lat|round(4) }}, {{ detection.coordinates.lng|round(4) }})</p>
+            <p class="status-{{ 'fixed' if detection.fixed else 'pending' }}">
+                {% if detection.fixed %}
+                <i class="fas fa-check-circle"></i> Fixed
+                {% else %}
+                <i class="fas fa-exclamation-triangle"></i> Pending
+                {% endif %}
+            </p>
+            <div id="map" style="height: 300px; margin-top: 20px;"></div>
+            <script>
+                const map = L.map('map').setView([{{ detection.coordinates.lat }}, {{ detection.coordinates.lng }}], 17);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19
+                }).addTo(map);
+                L.marker([{{ detection.coordinates.lat }}, {{ detection.coordinates.lng }}]).addTo(map)
+                    .bindPopup('<b>{{ detection.class }}</b><br>{{ detection.datetime }}').openPopup();
+            </script>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2025 Road Monitoring System</p>
+    </footer>
+</body>
+
+</html>

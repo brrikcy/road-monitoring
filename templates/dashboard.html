@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Road Damage Detection Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</head>
+
+<body>
+    <header>
+        <div class="header-content">
+            <h1>Road Monitoring Dashboard</h1>
+            <nav>
+                <a href="{{ url_for('show_map') }}">
+                    <i class="fas fa-map-marked-alt"></i> View Pending on Map
+                </a>
+            </nav>
+        </div>
+    </header>
+    <main class="grid">
+        {% for detection in detections %}
+        <div class="card">
+            <div class="card-image">
+                <img src="{{ url_for('static', filename=detection.image.split('static/')[1]) }}" alt="Damage Image">
+            </div>
+            <div class="card-content">
+                <h2 class="card-title">{{ detection.class }}</h2>
+                <p class="card-date"><i class="far fa-clock"></i> {{ detection.datetime }}</p>
+                <div class="card-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    ({{ detection.coordinates.lat|round(4) }}, {{ detection.coordinates.lng|round(4) }})
+                </div>
+                <p class="card-status status-{{ 'fixed' if detection.fixed else 'pending' }}">
+                    {% if detection.fixed %}
+                    <i class="fas fa-check-circle"></i> Fixed
+                    {% else %}
+                    <i class="fas fa-exclamation-triangle"></i> Pending
+                    {% endif %}
+                </p>
+                <div class="card-actions">
+                    <a href="{{ url_for('view_detection', detection_id=detection.id) }}" class="btn btn-view">
+                        <i class="fas fa-eye"></i> View
+                    </a>
+                    {% if not detection.fixed %}
+                    <button onclick="markFixed({{ detection.id }})" class="btn btn-fix">
+                        <i class="fas fa-tools"></i> Mark Fixed
+                    </button>
+                    {% endif %}
+                    <button onclick="confirmDelete({{ detection.id }})" class="btn btn-delete">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </main>
+    <footer>
+        <p>&copy; 2025 Road Monitoring System</p>
+    </footer>
+</body>
+
+</html>
