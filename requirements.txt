@@ -1,0 +1,12 @@
+# Web Framework
+Flask==3.0.0
+
+# AI and Computer Vision
+ultralytics>=8.0.0
+opencv-python
+torch
+torchvision
+torchaudio
+
+# Utilities
+numpy
